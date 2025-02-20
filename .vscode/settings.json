@@ -108,5 +108,12 @@
       "monitor": true
     }
   ],
+  "atlascode.jira.lastCreateSiteAndProject": {
+    "siteId": "16680d7e-ddba-493b-9aab-c7559f2183ce",
+    "projectKey": "GL"
+  },
+  "atlascode.jira.workingProject": "GL",
+  "atlascode.jira.workingSite": "https://glowleds.atlassian.net",
+  "atlascode.jira.statusbar.enabled": false,
   "atlascode.jira.startWorkBranchTemplate.customTemplate": "{{{issueKey}}}-{{{summary}}}"
 }

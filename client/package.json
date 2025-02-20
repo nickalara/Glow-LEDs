@@ -31,6 +31,8 @@
     "axios": "^1.7.2",
     "dayjs": "^1.11.13",
     "html-to-react": "^1.4.8",
+    "jspdf": "^3.0.0",
+    "jspdf-autotable": "^3.8.4",
     "lodash": "^4.17.21",
     "mui-color-input": "^4.0.2",
     "papaparse": "^5.4.1",

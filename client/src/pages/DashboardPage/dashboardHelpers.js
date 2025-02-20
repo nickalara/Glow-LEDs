@@ -1,6 +1,3 @@
-import axios from "axios";
-import { set_loading } from "./dashboardSlice";
-
 export const getMonthStartEndDates = ({ month, year }) => {
   if (month && year) {
     const monthNumber = new Date(Date.parse(`${month} 1, ${year}`)).getMonth();
@@ -8,9 +5,10 @@ export const getMonthStartEndDates = ({ month, year }) => {
     const end_date = new Date(year, monthNumber + 1, 0);
     return { start_date: start_date.toISOString().substring(0, 10), end_date: end_date.toISOString().substring(0, 10) };
   } else if (year) {
-    const start_date = new Date(year, 0, 1);
-    const end_date = new Date(year, 11, 31);
-    return { start_date: start_date.toISOString().substring(0, 10), end_date: end_date.toISOString().substring(0, 10) };
+    return {
+      start_date: `${year}-01-01`,
+      end_date: `${year}-12-31`,
+    };
   } else {
     // Default start date when year is not provided
     const todayISO = new Date().toISOString();
@@ -48,36 +46,6 @@ export const months = [
   "November",
   "December",
 ];
-
-export const run_daily_workers = async dispatch => {
-  const confirm = window.confirm("Are you sure you want to run the daily worker?");
-  if (confirm) {
-    dispatch(set_loading(true));
-    await axios.get(`/api/products/facebook_catelog`);
-    // google_catalog_upload();
-    dispatch(set_loading(false));
-  }
-};
-
-// export const run_weekly_workers = dispatch => {
-//   const confirm = window.confirm("Are you sure you want to run the weekly worker?");
-//   if (confirm) {
-//     dispatch(set_loading(true));
-//     payout_employees();
-//     dispatch(set_loading(false));
-//   }
-// };
-// export const run_monthly_workers = dispatch => {
-//   const confirm = window.confirm("Are you sure you want to run the monthly worker?");
-//   if (confirm) {
-//     dispatch(set_loading(true));
-//     payout_affiliates();
-//     payout_teams();
-//     payout_tips();
-//     refresh_sponsor_codes();
-//     dispatch(set_loading(false));
-//   }
-// };
 
 export const isLoading = data => {
   return !data.isLoading && data.data[0];
