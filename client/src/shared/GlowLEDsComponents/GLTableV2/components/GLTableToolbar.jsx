@@ -17,10 +17,7 @@ const GLTableToolbar = ({
   <div>
     {tableName && (hasFilters || titleActions) && (
       <Toolbar
-        className={{
-          ...glTable.titleContainer,
-          ...(enableRowSelect && numSelected > 0 && glTable.rowSelectedTitleContainer),
-        }}
+        className={`${glTable.titleContainer} ${enableRowSelect && numSelected > 0 ? glTable.rowSelectedTitleContainer : ""}`}
       >
         <div>
           {enableRowSelect && numSelected > 0 ? (
