@@ -14,11 +14,11 @@ import {
   refundLabel,
 } from "./shipping_interactors.js";
 
-import easy_post_api from "@easypost/api";
+import EasyPostApi from "@easypost/api";
 import email_services from "../emails/email_services.js";
 import { sendExchangeOrderEmail } from "../orders/order_interactors.js";
 
-const EasyPost = new easy_post_api(config.EASY_POST);
+const EasyPost = new EasyPostApi(config.EASY_POST);
 
 export default {
   shipping_rates_shipping_s: async body => {

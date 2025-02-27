@@ -1,5 +1,6 @@
 import config from "../../config.js";
 import order_db from "../orders/order_db.js";
+import parcel_db from "../parcels/parcel_db.js";
 import { calculateTotalOunces, covertToOunces, determine_parcel } from "./shipping_helpers.js";
 
 import EasyPostApi from "@easypost/api";
@@ -11,121 +12,87 @@ export const buyLabel = async ({ shipment_id, shipping_rate }) => {
     return await EasyPost.Shipment.buy(shipment_id, shipping_rate?.id);
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(
-        error.errors?.map(errorItem => `${errorItem.field} ${errorItem.message}`).join(", ") || error.message
-      );
+      throw new Error(error.errors?.map(error => `${error.field} ${error.message}`).join(", ") || error.message);
     }
-    return null;
   }
 };
 
-// Helper function to delay execution
-const sleep = async ms => {
-  return new Promise(resolve => {
-    setTimeout(resolve, ms);
-  });
-};
+const maxRetries = 3;
+let retries = 0;
 
-// Completely refactored to avoid linting issues
 async function fetchTracker(label) {
-  const maxAttempts = 3;
-
-  const attemptFetch = async attemptNumber => {
+  while (retries < maxRetries) {
     try {
-      return await EasyPost.Tracker.retrieve(label.tracker.id);
+      const tracker = await EasyPost.Tracker.retrieve(label.tracker.id);
+      return tracker;
     } catch (error) {
-      if (attemptNumber >= maxAttempts) {
-        throw new Error("Max retries reached. Tracker could not be found.");
-      }
-
-      await sleep(2000);
-      return attemptFetch(attemptNumber + 1);
+      retries++;
+      console.log(`Retry ${retries}: ${error.message}`);
+      await new Promise(resolve => setTimeout(resolve, 2000)); // wait for 2 seconds
     }
-  };
-
-  return attemptFetch(1);
+  }
+  throw new Error("Max retries reached. Tracker could not be found.");
 }
 
 export const addTracking = async ({ label, order, shipping_rate, isReturnTracking = false }) => {
   try {
     const tracker = await fetchTracker(label);
-    // Create a copy of the order to avoid modifying function parameters
-    const updatedOrder = { ...order };
 
     if (isReturnTracking) {
-      updatedOrder.shipping = {
-        ...updatedOrder.shipping,
-        return_shipment_tracker: label.tracker.id,
-        return_shipping_label: label,
-      };
-      updatedOrder.return_tracking_url = tracker.public_url;
-      updatedOrder.return_tracking_number = label.tracking_code;
+      order.shipping.return_shipment_tracker = label.tracker.id;
+      order.return_tracking_url = tracker.public_url;
+      order.return_tracking_number = label.tracking_code;
+      order.shipping.return_shipping_label = label;
     } else {
-      updatedOrder.shipping = {
-        ...updatedOrder.shipping,
-        shipment_tracker: label.tracker.id,
-        shipping_label: label,
-        shipping_rate,
-        shipment_id: label.id,
-      };
-      updatedOrder.tracking_number = label.tracking_code;
-      updatedOrder.tracking_url = tracker.public_url;
+      order.shipping.shipment_tracker = label.tracker.id;
+      order.tracking_number = label.tracking_code;
+      order.tracking_url = tracker.public_url;
+      order.shipping.shipping_label = label;
+      order.shipping.shipping_rate = shipping_rate;
+      order.shipping.shipment_id = label.id;
 
-      const hasFiniteStock = updatedOrder.orderItems.some(item => item.finite_stock === true);
-      const hasInfiniteStock = updatedOrder.orderItems.some(
+      const hasFiniteStock = order.orderItems.some(item => item.finite_stock === true);
+      const hasInfiniteStock = order.orderItems.some(
         item => item.finite_stock === false || item.finite_stock === undefined
       );
 
       if (hasInfiniteStock) {
-        updatedOrder.status = "crafting";
+        order.status = "crafting";
       } else if (hasFiniteStock) {
-        updatedOrder.status = "label_created";
+        order.status = "label_created";
       } else {
         // You might want to set a default status here or handle this case differently
-        updatedOrder.status = "label_created"; // Default to this if all are undefined
+        order.status = "label_created"; // Default to this if all are undefined
       }
     }
 
-    await order_db.update_orders_db(updatedOrder._id, updatedOrder);
-    return updatedOrder;
+    await order_db.update_orders_db(order._id, order);
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(error.errors?.map(errorItem => `${errorItem.field} ${errorItem.message}`).join(", "));
+      throw new Error(error.errors?.map(error => `${error.field} ${error.message}`).join(", "));
     }
-    return null;
   }
 };
 
 export const clearTracking = async ({ order, isReturnTracking = false }) => {
   try {
-    // Create a copy of the order to avoid modifying function parameters
-    const updatedOrder = { ...order };
-
     if (isReturnTracking) {
-      updatedOrder.shipping = {
-        ...updatedOrder.shipping,
-        return_shipment_tracker: null,
-        return_shipping_label: null,
-      };
-      updatedOrder.return_tracking_url = null;
-      updatedOrder.return_tracking_number = null;
+      order.shipping.return_shipment_tracker = null;
+      order.return_tracking_url = null;
+      order.return_tracking_number = null;
+      order.shipping.return_shipping_label = null;
     } else {
-      updatedOrder.shipping = {
-        ...updatedOrder.shipping,
-        shipment_tracker: null,
-        shipping_label: null,
-      };
-      updatedOrder.tracking_number = null;
-      updatedOrder.tracking_url = null;
+      order.shipping.shipment_tracker = null;
+      order.tracking_number = null;
+      order.tracking_url = null;
+      order.shipping.shipping_label = null;
     }
 
-    await order_db.update_orders_db(updatedOrder._id, updatedOrder);
-    return updatedOrder;
+    await order_db.update_orders_db(order._id, order);
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(error.errors?.map(errorItem => `${errorItem.field} ${errorItem.message}`).join(", "));
+      throw new Error(error.errors?.map(error => `${error.field} ${error.message}`).join(", "));
     }
-    return null;
   }
 };
 
@@ -136,27 +103,17 @@ export const createTracker = async ({ order }) => {
       tracking_code: order.tracking_number,
       carrier: order.shipping?.shipping_rate?.carrier || label.selected_rate.carrier,
     });
-
-    // Create a copy of the order to avoid modifying function parameters
-    const updatedOrder = {
-      ...order,
-      tracking_url: tracker.public_url,
-    };
-
-    updatedOrder.shipping = {
-      ...updatedOrder.shipping,
-      shipping_label: label,
-      shipping_rate: order.shipping?.shipping_rate || label.selected_rate,
-      shipment_tracker: tracker.id,
-    };
-
-    await order_db.update_orders_db(updatedOrder._id, updatedOrder);
+    order.tracking_url = tracker.public_url;
+    order.shipping.shipping_label = label;
+    order.shipping.shipping_rate = order.shipping?.shipping_rate || label.selected_rate;
+    order.shipping.shipment_tracker = tracker.id;
+    order.tracking_url = tracker.public_url;
+    await order_db.update_orders_db(order._id, order);
     return tracker;
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(error.errors?.map(errorItem => `${errorItem.field} ${errorItem.message}`).join(", "));
+      throw new Error(error.errors?.map(error => `${error.field} ${error.message}`).join(", "));
     }
-    return null;
   }
 };
 
@@ -166,53 +123,41 @@ export const refundLabel = async ({ order, is_return_tracking }) => {
       carrier: order.shipping.shipping_rate.carrier,
       tracking_codes: [is_return_tracking ? order.return_tracking_number : order.tracking_number],
     });
-
-    // Create a copy of the order to avoid modifying function parameters
-    const updatedOrder = { ...order };
-
     if (refund) {
       if (is_return_tracking) {
-        updatedOrder.shipping = {
-          ...updatedOrder.shipping,
-          return_shipment_tracker: null,
-          return_shipping_label: null,
-        };
-        updatedOrder.return_tracking_url = null;
-        updatedOrder.return_tracking_number = null;
+        order.shipping.return_shipment_tracker = null;
+        order.return_tracking_url = null;
+        order.return_tracking_number = null;
+        order.shipping.return_shipping_label = null;
       } else {
-        updatedOrder.shipping = {
-          ...updatedOrder.shipping,
-          shipment_id: null,
-          shipping_rate: null,
-          shipment_tracker: null,
-          shipping_label: null,
-        };
-        updatedOrder.tracking_number = null;
-        updatedOrder.tracking_url = null;
+        order.shipping.shipment_id = null;
+        order.shipping.shipping_rate = null;
+        order.shipping.shipment_tracker = null;
+        order.tracking_number = null;
+        order.tracking_url = null;
+        order.shipping.shipping_label = null;
       }
     }
 
-    return await order_db.update_orders_db(updatedOrder._id, updatedOrder);
+    return await order_db.update_orders_db(order._id, order);
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(error.errors?.map(errorItem => `${errorItem.field} ${errorItem.message}`).join(", "));
+      throw new Error(error.errors?.map(error => `${error.field} ${error.message}`).join(", "));
     }
-    return null;
   }
 };
 
 export const createLabel = async ({ order, shipping_rate }) => {
   try {
     const { shipment } = await createShippingRates({ order, returnLabel: false });
-    const rateMatch = shipment.rates.find(
-      rateItem => rateItem.service === shipping_rate.service && rateItem.carrier === shipping_rate.carrier
+    const rate = shipment.rates.find(
+      rate => rate.service === shipping_rate.service && rate.carrier === shipping_rate.carrier
     );
-    return await EasyPost.Shipment.buy(shipment.id, rateMatch.id);
+    return await EasyPost.Shipment.buy(shipment.id, rate.id);
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(error.errors?.map(errorItem => `${errorItem.field} ${errorItem.message}`).join(", "));
+      throw new Error(error.errors?.map(error => `${error.field} ${error.message}`).join(", "));
     }
-    return null;
   }
 };
 
@@ -244,7 +189,6 @@ const getDescription = category => {
 
 export const createShippingRates = async ({ order, returnLabel, returnToHeadquarters }) => {
   try {
-    // No longer need to fetch parcels since we're using custom sizes
     const shippableItems = order.orderItems.filter(item => item.itemType === "product");
     const parcel = determine_parcel(shippableItems);
 
@@ -325,10 +269,10 @@ export const createShippingRates = async ({ order, returnLabel, returnToHeadquar
     });
     return { shipment, parcel };
   } catch (error) {
+    console.log({ error, errors: error.errors });
     if (error instanceof Error) {
-      throw new Error(error.errors?.map(errorItem => `${errorItem.field} ${errorItem.message}`).join(", "));
+      throw new Error(error.errors?.map(error => `${error.field} ${error.message}`).join(", "));
     }
-    return null;
   }
 };
 
@@ -406,9 +350,9 @@ export const createCustomShippingRates = async ({ toShipping, fromShipping, parc
 
     return { shipment, parcel };
   } catch (error) {
+    console.log({ error, errors: error.errors });
     if (error instanceof Error) {
-      throw new Error(error.errors?.map(errorItem => `${errorItem.field} ${errorItem.message}`).join(", "));
+      throw new Error(error.errors?.map(error => `${error.field} ${error.message}`).join(", "));
     }
-    return null;
   }
 };
