@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet";
 import * as API from "../../api";
 import { determineTabName } from "./dashboardHelpers";
 import { useDispatch, useSelector } from "react-redux";
-import { DatePicker } from "./components";
+import { DatePicker, IRSCategoryExpenses } from "./components";
 import { Loading } from "../../shared/SharedComponents";
 
 import { openGcodeContinuousModal, setTabIndex } from "./dashboardSlice";
@@ -80,14 +80,12 @@ const DashboardPage = () => {
               scrollButtons="false"
             >
               <Tab label={`${determineTabName(month, year)} Revenue`} value={0} />
-              {";"}
+
               <Tab label="Affiliate Earnings" value={1} />
-              {";"}
               <Tab label="Product Categories" value={2} />
-              {";"}
               <Tab label="All Products" value={3} />
               <Tab label="Product Revenue" value={4} />
-              <Tab label="Sponsor Checkins" value={5} />
+              <Tab label="IRS Expenses" value={5} />
             </Tabs>
           </AppBar>
         </Paper>
@@ -106,6 +104,10 @@ const DashboardPage = () => {
         <GLTabPanel value={tabIndex} index={4}>
           <ProductRevenue />
         </GLTabPanel>
+        <GLTabPanel value={tabIndex} index={5}>
+          <IRSCategoryExpenses />
+        </GLTabPanel>
+        <CurrentStock />
         <CurrentStock />
         <GcodeGeneratorModal />
       </div>
