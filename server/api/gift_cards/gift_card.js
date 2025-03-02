@@ -74,7 +74,7 @@ giftCardSchema.methods.use = async function (amount, orderId) {
   this.currentBalance -= amount;
   this.transactions.push({
     orderId,
-    amount: amount,
+    amount,
     date: Date.now(),
   });
 
@@ -82,7 +82,7 @@ giftCardSchema.methods.use = async function (amount, orderId) {
     this.isActive = false;
   }
 
-  return await this.save();
+  return this.save();
 };
 
 const GiftCard = mongoose.model("GiftCard", giftCardSchema);

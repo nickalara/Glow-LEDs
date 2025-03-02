@@ -191,15 +191,23 @@ const PaymentStep = () => {
           order_note,
           production_note,
           tip,
-          promo_code: activePromoCodeIndicator && promo_code,
-          giftCard:
-            activePromoCodeIndicator && promo_code?.length === 16
-              ? {
-                  code: giftCardCode,
-                  amountUsed: giftCardAmount,
-                  source: "customer",
-                }
-              : null,
+          promo_code: activePromoCodeIndicator && promo_code.length !== 16 ? promo_code : null,
+          giftCards:
+            activePromoCodeIndicator && promo_code.length === 16
+              ? [
+                  {
+                    code: giftCardCode,
+                    amountUsed: giftCardAmount,
+                    source: "customer",
+                  },
+                ]
+              : active_gift_cards.length > 0
+                ? active_gift_cards.map(card => ({
+                    code: card.code,
+                    amountUsed: card.amountUsed,
+                    source: "customer",
+                  }))
+                : null,
           parcel: parcel || null,
           status: "paid",
           paidAt: today,

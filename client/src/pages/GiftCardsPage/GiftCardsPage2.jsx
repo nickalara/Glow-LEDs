@@ -28,6 +28,7 @@ const GiftCardsPage = () => {
 
   const columnDefs = useMemo(
     () => [
+      { title: "Date Created", display: giftCard => formatDate(giftCard.createdAt) },
       { title: "Code", display: giftCard => giftCard.code },
       { title: "Initial Balance", display: giftCard => formatPrice(giftCard.initialBalance) },
       { title: "Current Balance", display: giftCard => formatPrice(giftCard.currentBalance) },

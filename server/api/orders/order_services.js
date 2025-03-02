@@ -334,10 +334,22 @@ export default {
       }
 
       // Handle gift cards
-      if (order.giftCards && order.giftCards.length > 0) {
+      if (order.giftCard) {
+        // Single gift card passed as giftCard
+        try {
+          await useGiftCard(order.giftCard.code, order.giftCard.amountUsed, paymentOrder._id);
+        } catch (error) {
+          console.error("Error applying gift card:", error);
+        }
+      } else if (order.giftCards && order.giftCards.length > 0) {
+        // Multiple gift cards passed as giftCards array
         await Promise.all(
           order.giftCards.map(async giftCard => {
-            await useGiftCard(giftCard.code, giftCard.amountUsed, order._id);
+            try {
+              await useGiftCard(giftCard.code, giftCard.amountUsed, paymentOrder._id);
+            } catch (error) {
+              console.error(`Error applying gift card ${giftCard.code}:`, error);
+            }
           })
         );
       }
@@ -931,10 +943,22 @@ export default {
       }
 
       // Handle gift cards if they exist
-      if (updatedOrder.giftCards && updatedOrder.giftCards.length > 0) {
+      if (updatedOrder.giftCard) {
+        // Single gift card
+        try {
+          await useGiftCard(updatedOrder.giftCard.code, updatedOrder.giftCard.amountUsed, id);
+        } catch (error) {
+          console.error("Error applying gift card:", error);
+        }
+      } else if (updatedOrder.giftCards && updatedOrder.giftCards.length > 0) {
+        // Array of gift cards
         await Promise.all(
           updatedOrder.giftCards.map(async giftCard => {
-            await useGiftCard(giftCard.code, giftCard.amountUsed, id);
+            try {
+              await useGiftCard(giftCard.code, giftCard.amountUsed, id);
+            } catch (error) {
+              console.error(`Error applying gift card ${giftCard.code}:`, error);
+            }
           })
         );
       }

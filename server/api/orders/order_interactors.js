@@ -148,6 +148,24 @@ export const normalizeOrderSearch = query => {
           promo_code: query.search.slice(1, query.search.length),
         }
       : {};
+  } else if (query.search && query.search.match(/^[A-Za-z0-9]{16}$/)) {
+    // Search for 16-character alphanumeric strings as potential gift card codes without the "!" prefix
+    search = query.search
+      ? {
+          $or: [
+            {
+              "giftCards.code": {
+                $regex: new RegExp(query.search, "i"),
+              },
+            },
+            {
+              giftCardCode: {
+                $regex: new RegExp(query.search, "i"),
+              },
+            },
+          ],
+        }
+      : {};
   } else if (query.search && query.search.match(USPS_REGEX)) {
     search = query.search
       ? {
