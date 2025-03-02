@@ -182,6 +182,18 @@ export default {
       res.status(500).send({ error, message: error.message });
     }
   },
+  update_multiple_field_expenses_c: async (req, res) => {
+    const { body } = req;
+    try {
+      const expense = await expense_services.update_multiple_field_expenses_s(body);
+      if (expense) {
+        return res.status(200).send({ message: `${body.field} Updated` });
+      }
+      return res.status(500).send({ message: `Error Updating ${body.field}` });
+    } catch (error) {
+      res.status(500).send({ error, message: error.message });
+    }
+  },
   subscriptions_expenses_c: async (req, res) => {
     const { body } = req;
     try {

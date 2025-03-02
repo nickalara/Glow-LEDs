@@ -57,6 +57,17 @@ export const expenseFormFields = ({ expense, dispatch, expenses, filters }) => {
       },
       options: filters?.availableFilters?.irs_category,
     },
+    reason: {
+      type: "autocomplete_single",
+      label: "Reason",
+      options: filters?.availableFilters?.reason,
+      freeSolo: true,
+      getOptionLabel: option => {
+        if (typeof option === "string") {
+          return toCapitalize(option);
+        }
+      },
+    },
     parent_subscription: {
       type: "autocomplete_single",
       label: "Parent Subscription",
@@ -109,7 +120,7 @@ export const expenseFormFields = ({ expense, dispatch, expenses, filters }) => {
 
       album: `${expense.expense_name} Documents`,
       getOptionLabel: option => option.link,
-      onUpload: (value, key) => dispatch(set_expense({ documents: [...expense.documents, ...value] })),
+      onUpload: value => dispatch(set_expense({ documents: [...expense.documents, ...value] })),
     },
   };
 };

@@ -121,12 +121,27 @@ export const backfillSubscriptions = createAsyncThunk(
     }
   }
 );
+
 export const bulkSaveExpenses = createAsyncThunk(
   "expenses/bulkSaveExpenses",
   async (expenses, { dispatch, rejectWithValue }) => {
     try {
       const { data } = await axios.post(`/api/expenses/bulk`, { expenses });
       dispatch(showSuccess({ message: `Bulk Save Complete - ${data.message}` }));
+      return data;
+    } catch (error) {
+      dispatch(showError({ message: errorMessage(error) }));
+      return rejectWithValue(error.response?.data);
+    }
+  }
+);
+
+export const updateMultipleExpenseField = createAsyncThunk(
+  "expenses/updateMultipleExpenseField",
+  async ({ ids, field, value }, { dispatch, rejectWithValue }) => {
+    try {
+      const { data } = await axios.put(`/api/expenses/update_multiple_field`, { ids, field, value });
+      dispatch(showSuccess({ message: `${field} Updated` }));
       return data;
     } catch (error) {
       dispatch(showError({ message: errorMessage(error) }));

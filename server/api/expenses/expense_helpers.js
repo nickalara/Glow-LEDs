@@ -29,6 +29,12 @@ export const normalizeExpenseFilters = input => {
         }
         break;
 
+      case "reason":
+        for (const reason of input.reason) {
+          output.reason = reason;
+        }
+        break;
+
       default:
         break;
     }

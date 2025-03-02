@@ -13,6 +13,7 @@ const expense = {
   category: "",
   card: "",
   amount: 0,
+  reason: "",
   documents: [],
   is_subscription: false,
   is_direct_expense: false,
@@ -170,6 +171,18 @@ const expensePage = createSlice({
       state.remoteVersionRequirement = Date.now();
     },
     [API.bulkSaveExpenses.rejected]: (state, { payload, error }) => {
+      state.loading = false;
+      state.error = payload ? payload.error : error.message;
+      state.message = payload ? payload.message : "An error occurred";
+    },
+    [API.updateMultipleExpenseField.pending]: state => {
+      state.loading = true;
+    },
+    [API.updateMultipleExpenseField.fulfilled]: state => {
+      state.loading = false;
+      state.remoteVersionRequirement = Date.now();
+    },
+    [API.updateMultipleExpenseField.rejected]: (state, { payload, error }) => {
       state.loading = false;
       state.error = payload ? payload.error : error.message;
       state.message = payload ? payload.message : "An error occurred";

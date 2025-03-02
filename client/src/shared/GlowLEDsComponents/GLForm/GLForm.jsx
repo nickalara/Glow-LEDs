@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import PropTypes from "prop-types";
 import { DropdownDisplayV2 } from "../../SharedComponents";
 import ImageWizard from "../../SharedComponents/ImageWizard";
-import { determine_shown_fields, formatDate, getEmptyObjectFromSchema, getValueByStringPath } from "./glFormHelpers";
+import { determine_shown_fields, getEmptyObjectFromSchema, getValueByStringPath } from "./glFormHelpers";
 import GoogleAutocomplete from "../../../pages/PlaceOrderPage/components/GoogleAutocomplete";
 import config from "../../../config";
 import { useEffect, useState } from "react";
@@ -50,17 +50,30 @@ const GLForm = ({ formData, onChange, state, loading, formErrors, setFormErrors,
 
   const handleEnterKeyPress = (event, fieldData, fieldName) => {
     if (event.key === "Enter") {
-      const selectedOption =
-        highlightedOption ||
-        fieldData.options.find(opt =>
-          fieldData.getOptionLabel
-            ? fieldData.getOptionLabel(opt) === inputValue
-            : opt[fieldData.labelProp] === inputValue
-        );
-      if (selectedOption) {
-        const savedValue = fieldData.getOptionValue ? fieldData.getOptionValue(selectedOption) : selectedOption;
+      // If we already have a highlighted option, use that
+      if (highlightedOption) {
+        const savedValue = fieldData.getOptionValue ? fieldData.getOptionValue(highlightedOption) : highlightedOption;
         handleInputChange(fieldName, savedValue);
-      } else {
+        return;
+      }
+
+      // Try to find a matching option in the options list
+      const matchingOption =
+        Array.isArray(fieldData.options) &&
+        fieldData.options.find(opt => {
+          const optionLabel = fieldData.getOptionLabel
+            ? fieldData.getOptionLabel(opt)
+            : typeof opt === "string"
+              ? opt
+              : opt[fieldData.labelProp];
+          return optionLabel === inputValue;
+        });
+
+      if (matchingOption) {
+        const savedValue = fieldData.getOptionValue ? fieldData.getOptionValue(matchingOption) : matchingOption;
+        handleInputChange(fieldName, savedValue);
+      } else if (fieldData.freeSolo !== false) {
+        // In freeSolo mode, use the input value directly if no matching option
         handleInputChange(fieldName, inputValue);
       }
     }
@@ -127,9 +140,11 @@ const GLForm = ({ formData, onChange, state, loading, formErrors, setFormErrors,
                       options={(!fieldData.loading && determineOptions(fieldData, state)) || []}
                       getOptionLabel={option =>
                         option
-                          ? fieldData.getOptionLabel
-                            ? fieldData.getOptionLabel(option)
-                            : option[fieldData.labelProp]
+                          ? typeof option === "string"
+                            ? option
+                            : fieldData.getOptionLabel
+                              ? fieldData.getOptionLabel(option)
+                              : option[fieldData.labelProp] || ""
                           : ""
                       }
                       optionDisplay={option =>
@@ -139,7 +154,9 @@ const GLForm = ({ formData, onChange, state, loading, formErrors, setFormErrors,
                       name={fieldName}
                       label={fieldData.label}
                       onChange={(event, value) => {
-                        const savedValue = fieldData.getOptionValue ? fieldData.getOptionValue(value) : value;
+                        // Handle both string and object values
+                        const savedValue =
+                          value === null ? "" : fieldData.getOptionValue ? fieldData.getOptionValue(value) : value;
                         handleInputChange(fieldName, savedValue);
                       }}
                       inputValue={inputValue}
@@ -152,6 +169,12 @@ const GLForm = ({ formData, onChange, state, loading, formErrors, setFormErrors,
                         if (reason === "input") {
                           setInputValue(newInputValue);
                           setHighlightedOption(null); // Clear highlighted option when user types
+
+                          // For freeSolo mode, update the form state directly with the typed value
+                          // This allows users to enter custom values that aren't in the options list
+                          if (fieldData.freeSolo !== false) {
+                            handleInputChange(fieldName, newInputValue);
+                          }
                         }
                       }}
                       onKeyDown={event => {
@@ -395,8 +418,6 @@ const GLForm = ({ formData, onChange, state, loading, formErrors, setFormErrors,
                 );
 
               case "date": {
-                const formattedDate = formatDate(fieldState);
-
                 return (
                   <GLTextFieldV2
                     helperText={formErrors && formErrors[fieldName]}
@@ -540,9 +561,11 @@ const GLForm = ({ formData, onChange, state, loading, formErrors, setFormErrors,
                         options={determineOptions(fieldData, state) || []}
                         getOptionLabel={option =>
                           option
-                            ? fieldData.getOptionLabel
-                              ? fieldData.getOptionLabel(option)
-                              : option[fieldData.labelProp]
+                            ? typeof option === "string"
+                              ? option
+                              : fieldData.getOptionLabel
+                                ? fieldData.getOptionLabel(option)
+                                : option[fieldData.labelProp] || ""
                             : ""
                         }
                         optionDisplay={option =>
@@ -552,7 +575,9 @@ const GLForm = ({ formData, onChange, state, loading, formErrors, setFormErrors,
                         name={fieldName}
                         label={fieldData.label}
                         onChange={(event, value) => {
-                          const savedValue = fieldData.getOptionValue ? fieldData.getOptionValue(value) : value;
+                          // Handle both string and object values
+                          const savedValue =
+                            value === null ? "" : fieldData.getOptionValue ? fieldData.getOptionValue(value) : value;
                           handleInputChange(fieldName, savedValue);
                         }}
                       />

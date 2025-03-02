@@ -19,6 +19,7 @@ router.route("/get_yearly_expenses_expenses").get(expense_controller.get_yearly_
 router.route("/create_all_expenses_s").post(expense_controller.create_all_expenses_c);
 router.route("/total_expenses").get(expense_controller.findAllByDate_expenses_c);
 router.route("/delete_multiple").put(expense_controller.remove_multiple_expenses_c);
+router.route("/update_multiple_field").put(expense_controller.update_multiple_field_expenses_c);
 router.route("/subscriptions").put(expense_controller.subscriptions_expenses_c);
 router.route("/:id/subscriptions/backfill").put(expense_controller.backfill_subscriptions_expenses_c);
 router.route("/bulk").post(expense_controller.bulk_create_expenses_c);

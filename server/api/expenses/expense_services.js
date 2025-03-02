@@ -41,6 +41,7 @@ export default {
         category: await Expense.distinct("category"),
         irs_category: await Expense.distinct("irs_category"),
         card: await Expense.distinct("card"),
+        reason: await Expense.distinct("reason"),
         is_subscription: ["only_is_subscription"],
       };
       const booleanFilters = {
@@ -192,6 +193,16 @@ export default {
       if (error instanceof Error) {
         throw new Error(error.message);
       }
+    }
+  },
+  update_multiple_field_expenses_s: async body => {
+    try {
+      return await expense_db.update_multiple_field_expenses_db(body.ids, body.field, body.value);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(error.message);
+      }
+      return null;
     }
   },
   subscriptions_expenses_s: async () => {

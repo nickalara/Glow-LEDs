@@ -76,6 +76,18 @@ export default {
       }
     }
   },
+  update_multiple_field_expenses_db: async (ids, field, value) => {
+    try {
+      const updateObj = {};
+      updateObj[field] = value;
+      return await Expense.updateMany({ _id: { $in: ids } }, updateObj);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(error.message);
+      }
+      return null;
+    }
+  },
   count_expenses_db: async filter => {
     try {
       return await Expense.countDocuments(filter);

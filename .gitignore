@@ -143,3 +143,5 @@ lightshow.lol-main
 
 # Sentry Config File
 .sentryclirc
+
+amazon_order_history.csv

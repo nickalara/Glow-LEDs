@@ -7,10 +7,12 @@ import { EditExpenseModal } from "./components";
 import * as API from "../../api";
 
 import { getExpenses } from "../../api";
-import { open_create_expense_modal, open_edit_expense_modal, set_loading } from "../../slices/expenseSlice";
+import { open_create_expense_modal, open_edit_expense_modal } from "../../slices/expenseSlice";
 import GLImageModal from "../../shared/GlowLEDsComponents/GLImageModal/GLImageModal";
 import { close_image_display_modal } from "../../slices/imageSlice";
 import { determineExpenseColors, irsCategories } from "./expensesPageHelpers";
+import { GLAutocomplete } from "../../shared/GlowLEDsComponents";
+import { showConfirm } from "../../slices/snackbarSlice";
 
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -22,7 +24,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import ContentCopy from "@mui/icons-material/ContentCopy";
-import GLBoolean from "../../shared/GlowLEDsComponents/GLBoolean/GLBoolean";
 
 const ExpensesPage = () => {
   const expensePage = useSelector(state => state.expenses.expensePage);
@@ -31,7 +32,8 @@ const ExpensesPage = () => {
   const { image_display_modal, selected_image } = imagePage;
 
   const expenseTable = useSelector(state => state.expenses.expenseTable);
-  const { selectedRows } = expenseTable;
+  const { selectedRows, availableFilters } = expenseTable;
+
   const dispatch = useDispatch();
 
   const formatDate = dateString => {
@@ -59,16 +61,16 @@ const ExpensesPage = () => {
         display: "irs_category",
       },
       {
+        title: "Reason",
+        display: "reason",
+      },
+      {
         title: "Card",
         display: "card",
       },
       {
         title: "Amount",
         display: expense => (expense.amount ? `$${expense.amount.toFixed(2)}` : "$0.00"),
-      },
-      {
-        title: "Direct Expense",
-        display: row => <GLBoolean boolean={row.is_direct_expense} />,
       },
 
       {
@@ -97,10 +99,15 @@ const ExpensesPage = () => {
               <GLIconButton
                 tooltip="Edit"
                 onClick={() => {
-                  const confirm = window.confirm(`Are you sure you want to backfill ${expense.expense_name}?`);
-                  if (confirm) {
-                    dispatch(API.backfillSubscriptions(expense._id));
-                  }
+                  dispatch(
+                    showConfirm({
+                      title: "Confirm Backfill",
+                      message: `Are you sure you want to backfill ${expense.expense_name}?`,
+                      onConfirm: () => {
+                        dispatch(API.backfillSubscriptions(expense._id));
+                      },
+                    })
+                  );
                 }}
               >
                 <BackupTableIcon color="white" />
@@ -170,20 +177,75 @@ const ExpensesPage = () => {
         loading={loading}
         enableRowSelect={true}
         titleActions={
-          <div className="row g-10px">
+          <Box display="flex" gap={1} alignItems="center">
             {selectedRows.length > 1 && (
-              <Button
-                color="secondary"
-                variant="contained"
-                onClick={() => {
-                  const confirm = window.confirm(`Are you sure you want to Delete ${selectedRows.length} Expenses?`);
-                  if (confirm) {
-                    dispatch(API.deleteMultipleExpenses(selectedRows));
-                  }
+              <GLAutocomplete
+                variant="outlined"
+                options={availableFilters?.irs_category}
+                freeSolo={true}
+                optionDisplay={option => option}
+                getOptionLabel={option => option}
+                fullWidth
+                isOptionEqualToValue={(option, value) => option === value}
+                name="irs_category"
+                label="Batch Update IRS Category"
+                onChange={(e, value) => {
+                  dispatch(
+                    showConfirm({
+                      title: "Confirm IRS Category Update",
+                      message: `Are you sure you want to update IRS Category on ${selectedRows.length} Expenses?`,
+                      onConfirm: () => {
+                        dispatch(API.updateMultipleExpenseField({ ids: selectedRows, field: "irs_category", value }));
+                      },
+                    })
+                  );
                 }}
-              >
-                {"Delete Expenses"}
-              </Button>
+              />
+            )}
+            {selectedRows.length > 1 && (
+              <GLAutocomplete
+                variant="outlined"
+                options={availableFilters?.reason || []}
+                freeSolo={true}
+                optionDisplay={option => option}
+                getOptionLabel={option => option}
+                fullWidth
+                isOptionEqualToValue={(option, value) => option === value}
+                name="reason"
+                label="Batch Update Reason"
+                onChange={(e, value) => {
+                  dispatch(
+                    showConfirm({
+                      title: "Confirm Reason Update",
+                      message: `Are you sure you want to update Reason on ${selectedRows.length} Expenses?`,
+                      onConfirm: () => {
+                        dispatch(API.updateMultipleExpenseField({ ids: selectedRows, field: "reason", value }));
+                      },
+                    })
+                  );
+                }}
+              />
+            )}
+            {selectedRows.length > 1 && (
+              <div>
+                <Button
+                  color="secondary"
+                  variant="contained"
+                  onClick={() => {
+                    dispatch(
+                      showConfirm({
+                        title: "Confirm Delete",
+                        message: `Are you sure you want to Delete ${selectedRows.length} Expenses?`,
+                        onConfirm: () => {
+                          dispatch(API.deleteMultipleExpenses(selectedRows));
+                        },
+                      })
+                    );
+                  }}
+                >
+                  {"Delete Expenses"}
+                </Button>
+              </div>
             )}
             <div>
               <Button variant="contained" color="primary" component="label" fullWidth>
@@ -191,10 +253,12 @@ const ExpensesPage = () => {
                 <input type="file" id="file" hidden multiple onChange={e => showFiles(e)} />
               </Button>
             </div>
-            <Button color="primary" variant="contained" onClick={() => dispatch(open_create_expense_modal())}>
-              {"Create Expense"}
-            </Button>
-          </div>
+            <div>
+              <Button color="primary" variant="contained" onClick={() => dispatch(open_create_expense_modal())}>
+                {"Create Expense"}
+              </Button>
+            </div>
+          </Box>
         }
       />
 
