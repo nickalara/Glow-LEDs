@@ -227,6 +227,30 @@ const ExpensesPage = () => {
               />
             )}
             {selectedRows.length > 1 && (
+              <GLAutocomplete
+                variant="outlined"
+                options={availableFilters?.card || []}
+                freeSolo={true}
+                optionDisplay={option => option}
+                getOptionLabel={option => option}
+                fullWidth
+                isOptionEqualToValue={(option, value) => option === value}
+                name="card"
+                label="Batch Update Card"
+                onChange={(e, value) => {
+                  dispatch(
+                    showConfirm({
+                      title: "Confirm Card Update",
+                      message: `Are you sure you want to update Card on ${selectedRows.length} Expenses?`,
+                      onConfirm: () => {
+                        dispatch(API.updateMultipleExpenseField({ ids: selectedRows, field: "card", value }));
+                      },
+                    })
+                  );
+                }}
+              />
+            )}
+            {selectedRows.length > 1 && (
               <div>
                 <Button
                   color="secondary"

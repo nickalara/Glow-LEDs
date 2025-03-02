@@ -145,3 +145,7 @@ lightshow.lol-main
 .sentryclirc
 
 amazon_order_history.csv
+
+unmatched_amazon_orders.csv
+
+amazon_es_order_history.csv

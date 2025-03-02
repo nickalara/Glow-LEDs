@@ -15,6 +15,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return [];
   },
   findById_expenses_db: async id => {
     try {
@@ -24,6 +25,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return null;
   },
   create_expenses_db: async body => {
     try {
@@ -33,6 +35,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return null;
   },
   bulk_create_expenses_db: async expenses => {
     try {
@@ -42,6 +45,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return null;
   },
   update_expenses_db: async (id, body) => {
     try {
@@ -54,6 +58,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return null;
   },
   remove_expenses_db: async id => {
     try {
@@ -66,6 +71,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return null;
   },
   remove_multiple_expenses_db: async ids => {
     try {
@@ -75,6 +81,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return null;
   },
   update_multiple_field_expenses_db: async (ids, field, value) => {
     try {
@@ -96,6 +103,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return 0;
   },
   get_range_expenses_expenses_db: async (start_date, end_date) => {
     try {
@@ -123,6 +131,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return 0;
   },
   get_monthly_expenses_expenses_db: async year => {
     try {
@@ -133,7 +142,7 @@ export default {
             is_direct_expense: true,
             date_of_purchase: {
               $gte: new Date(`${year}-01-01T00:00:00.000Z`),
-              $lt: new Date(`${parseInt(year) + 1}-01-01T00:00:00.000Z`),
+              $lt: new Date(`${parseInt(year, 10) + 1}-01-01T00:00:00.000Z`),
             },
             irs_category: {
               $nin: ["Travel", "Meals", "Rent or Lease", "Car and Truck Expenses"],
@@ -180,6 +189,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return [];
   },
 
   get_yearly_expenses_expenses_db: async () => {
@@ -233,6 +243,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return [];
   },
   get_daily_expenses_expenses_db: async (start_date, end_date) => {
     try {
@@ -305,6 +316,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return [];
   },
   get_expenses_by_category_expenses_db: async (start_date, end_date) => {
     try {
@@ -316,6 +328,32 @@ export default {
               $gte: new Date(start_date),
               $lt: new Date(end_date),
             },
+            $or: [
+              {
+                card: {
+                  $in: [
+                    "Amazon 9204",
+                    "Amazon Business 1004",
+                    "Amazon Business 0584",
+                    "Chase 2365",
+                    "Stripe",
+                    "Charles Schwab 9432",
+                  ],
+                },
+              },
+              {
+                $and: [{ card: "Mastercard 7404" }, { irs_category: "Rent or Lease" }],
+              },
+              {
+                $and: [{ card: "Mastercard 7404" }, { irs_category: "Utilities" }],
+              },
+              {
+                $and: [{ card: "Amex 3002" }, { irs_category: "Utilities" }],
+              },
+              {
+                $and: [{ reason: { $exists: true } }, { irs_category: "Meals" }],
+              },
+            ],
           },
         },
         {
@@ -335,12 +373,15 @@ export default {
 
       // Convert array to object
       return expenses.reduce((acc, category) => {
-        acc[category.irs_category] = category.totalAmount;
-        return acc;
+        const newAcc = { ...acc };
+        newAcc[category.irs_category] = category.totalAmount;
+        return newAcc;
       }, {});
-    } catch (err) {
-      console.error("Aggregation error:", err);
-      throw err;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(error.message);
+      }
     }
+    return {};
   },
 };

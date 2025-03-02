@@ -73,25 +73,8 @@ export const normalizeAffiliateSearch = query => {
 export const normalizeAffiliateFilters = input => {
   const output = {};
   Object.keys(input).forEach(key => {
-    switch (key) {
-      case "promoter":
-        for (const promoter of input.promoter) {
-          output.promoter = promoter;
-        }
-        break;
-      case "sponsor":
-        for (const sponsor of input.sponsor) {
-          output.sponsor = sponsor;
-        }
-        break;
-
-      case "rave_mob":
-        for (const rave_mob of input.rave_mob) {
-          output.rave_mob = rave_mob;
-        }
-        break;
-      default:
-        break;
+    if (input[key] && input[key].length > 0) {
+      output[key] = input[key][input[key].length - 1];
     }
   });
 
@@ -138,6 +121,7 @@ export const determineRevenueTier = (affiliate, revenue) => {
       return 40;
     }
   }
+  return 10;
 };
 
 export const determineSponsorGiftCard = (affiliate, revenue) => {
@@ -155,4 +139,5 @@ export const determineSponsorGiftCard = (affiliate, revenue) => {
     }
     return 0; // No reward tier met
   }
+  return 0;
 };

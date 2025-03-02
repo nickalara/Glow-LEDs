@@ -33,15 +33,16 @@ export default {
         throw new Error(error.message);
       }
     }
+    return [];
   },
-  create_filters_expenses_s: async query => {
+  create_filters_expenses_s: async () => {
     try {
       const availableFilters = {
-        place_of_purchase: await Expense.distinct("place_of_purchase"),
-        category: await Expense.distinct("category"),
-        irs_category: await Expense.distinct("irs_category"),
-        card: await Expense.distinct("card"),
-        reason: await Expense.distinct("reason"),
+        place_of_purchase: await Expense.distinct("place_of_purchase", { deleted: false }),
+        category: await Expense.distinct("category", { deleted: false }),
+        irs_category: await Expense.distinct("irs_category", { deleted: false }),
+        card: await Expense.distinct("card", { deleted: false }),
+        reason: await Expense.distinct("reason", { deleted: false }),
         is_subscription: ["only_is_subscription"],
       };
       const booleanFilters = {
@@ -55,6 +56,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return { availableFilters: {}, booleanFilters: {} };
   },
 
   findAllByDate_expenses_s: async body => {
@@ -74,6 +76,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return [];
   },
   findById_expenses_s: async params => {
     try {
@@ -83,6 +86,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return null;
   },
   create_expenses_s: async body => {
     try {
@@ -92,6 +96,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return null;
   },
   bulk_create_expenses_s: async body => {
     const { expenses } = body;
@@ -125,15 +130,16 @@ export default {
         throw new Error(error.message);
       }
     }
+    return null;
   },
 
   create_all_expenses_s: async body => {
     const { data, card, properties } = body;
     try {
       const expenses = [];
-      for (let line = 1; line < data.length; line++) {
+      for (let line = 1; line < data.length; line += 1) {
         const object = {};
-        for (let i = 0; i < data[line].length; i++) {
+        for (let i = 0; i < data[line].length; i += 1) {
           object[properties[i]] = data[line][i];
         }
         expenses.push(object);
@@ -167,6 +173,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return null;
   },
   update_expenses_s: async (params, body) => {
     try {
@@ -176,6 +183,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return null;
   },
   remove_expenses_s: async params => {
     try {
@@ -185,6 +193,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return null;
   },
   remove_multiple_expenses_s: async body => {
     try {
@@ -194,6 +203,7 @@ export default {
         throw new Error(error.message);
       }
     }
+    return null;
   },
   update_multiple_field_expenses_s: async body => {
     try {
@@ -202,8 +212,8 @@ export default {
       if (error instanceof Error) {
         throw new Error(error.message);
       }
-      return null;
     }
+    return null;
   },
   subscriptions_expenses_s: async () => {
     try {
@@ -233,6 +243,9 @@ export default {
           case "Yearly":
             isDueToday = subscription.subscription.repeats_on === currentMonth;
             break;
+          default:
+            isDueToday = false;
+            break;
         }
 
         return isDueToday && (!validToFormatted || today.toISOString().split("T")[0] <= validToFormatted);
@@ -253,7 +266,7 @@ export default {
             parent_subscription: subscription._id, // reference to the subscription
           };
 
-          return await Expense.create(newExpenseData);
+          return Expense.create(newExpenseData);
         })
       );
 
@@ -288,7 +301,7 @@ export default {
 
         // Check against valid_to date
         if (validToDate && purchaseDate > validToDate) {
-          continue; // Skip to next month if purchaseDate is after valid_to date
+          break; // Skip to next month if purchaseDate is after valid_to date
         }
 
         const rangeStart = new Date(purchaseDate);
@@ -299,7 +312,7 @@ export default {
         rangeEnd.setDate(purchaseDate.getDate() + 1); // One day after
         rangeEnd.setHours(23, 59, 59, 999);
 
-        const existingExpense = await Expense.findOne({
+        const existingExpense = Expense.findOne({
           parent_subscription: subscription._id,
           date_of_purchase: {
             $gte: rangeStart,
@@ -322,7 +335,7 @@ export default {
             parent_subscription: subscription._id, // reference to the subscription
           };
 
-          await Expense.create(newExpenseData);
+          Expense.create(newExpenseData);
         }
       }
 

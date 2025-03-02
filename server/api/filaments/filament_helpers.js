@@ -1,19 +1,8 @@
 export const normalizeFilamentFilters = input => {
   const output = {};
   Object.keys(input).forEach(key => {
-    switch (key) {
-      case "type":
-        for (const type of input.type) {
-          output["type"] = type;
-        }
-        break;
-      case "tags":
-        for (const tags of input.tags) {
-          output["tags"] = tags;
-        }
-        break;
-      default:
-        break;
+    if (input[key] && input[key].length > 0) {
+      output[key] = input[key][input[key].length - 1];
     }
   });
   return output;

@@ -6,37 +6,8 @@ import path from "path";
 export const normalizeExpenseFilters = input => {
   const output = {};
   Object.keys(input).forEach(key => {
-    switch (key) {
-      case "category":
-        for (const category of input.category) {
-          output.category = category;
-        }
-        break;
-      case "card":
-        for (const card of input.card) {
-          output.card = card;
-        }
-        break;
-      case "place_of_purchase":
-        for (const place_of_purchase of input.place_of_purchase) {
-          output.place_of_purchase = place_of_purchase;
-        }
-        break;
-
-      case "irs_category":
-        for (const irs_category of input.irs_category) {
-          output.irs_category = irs_category;
-        }
-        break;
-
-      case "reason":
-        for (const reason of input.reason) {
-          output.reason = reason;
-        }
-        break;
-
-      default:
-        break;
+    if (input[key] && input[key].length > 0) {
+      output[key] = input[key][input[key].length - 1];
     }
   });
   if (input.is_subscription && input.is_subscription.includes("only_is_subscription")) {
@@ -46,23 +17,43 @@ export const normalizeExpenseFilters = input => {
 };
 
 export const normalizeExpenseSearch = query => {
-  const search = query.search
-    ? {
-        expense_name: {
-          $regex: query.search.toLowerCase(),
-          $options: "i",
-        },
-      }
-    : {};
+  // Check if the search query is empty
+  if (!query.search) {
+    return {};
+  }
 
-  return search;
+  // Check if the search query is a number (for amount search)
+  const isNumeric = !Number.isNaN(parseFloat(query.search)) && Number.isFinite(parseFloat(query.search));
+
+  if (isNumeric) {
+    const numericValue = parseFloat(query.search);
+    // For amount searches, use a small range to catch values that are very close
+    // This is more useful than exact matches only, especially with floating point values
+    const precision = 0.005; // Half a cent precision
+    return {
+      amount: {
+        $gte: numericValue - precision,
+        $lte: numericValue + precision,
+      },
+    };
+  }
+
+  // For text searches, look in multiple fields
+  const searchRegex = {
+    $regex: query.search.toLowerCase(),
+    $options: "i",
+  };
+
+  return {
+    $or: [{ expense_name: searchRegex }, { place_of_purchase: searchRegex }, { category: searchRegex }],
+  };
 };
 
 export const sanitizeExpenseName = expenseName => {
   return expenseName.trim().replace(/[:/\s]/g, "_");
 };
 
-export const downloadFile = async (url, filePath, expenseName) => {
+export const downloadFile = async (url, filePath, _expenseName) => {
   try {
     const dir = path.dirname(filePath);
 
@@ -128,8 +119,9 @@ export const downloadFile = async (url, filePath, expenseName) => {
       throw new Error(`Failed to download file with status code: ${response.status}`);
     }
   } catch (error) {
-    console.error(`Failed to download file from url: ${url} with error: ${error}`);
-    throw error;
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
   }
 };
 
@@ -157,11 +149,14 @@ export const uploadToImgur = async (albumName, filePath) => {
       throw new Error(error.message);
     }
   }
+
+  // Return undefined explicitly to fix the linter error
+  return undefined;
 };
 
-export const deleteTempFile = path => {
+export const deleteTempFile = filePath => {
   try {
-    fs.unlink(path, err => {
+    fs.unlink(filePath, err => {
       if (err) throw err;
     });
   } catch (error) {

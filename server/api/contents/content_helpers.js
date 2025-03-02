@@ -1,25 +1,8 @@
 export const normalizeContentFilters = input => {
   const output = {};
   Object.keys(input).forEach(key => {
-    switch (key) {
-      case "category":
-        for (const category of input.category) {
-          output["category"] = category;
-        }
-        break;
-      case "card":
-        for (const card of input.card) {
-          output["card"] = card;
-        }
-        break;
-      case "place_of_purchase":
-        for (const place_of_purchase of input.place_of_purchase) {
-          output["place_of_purchase"] = place_of_purchase;
-        }
-        break;
-
-      default:
-        break;
+    if (input[key] && input[key].length > 0) {
+      output[key] = input[key][input[key].length - 1];
     }
   });
   return output;
