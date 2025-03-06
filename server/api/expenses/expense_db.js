@@ -351,6 +351,15 @@ export default {
                 $and: [{ card: "Amex 3002" }, { irs_category: "Utilities" }],
               },
               {
+                $and: [{ card: "Mastercard 7404" }, { irs_category: "Legal and Professional Services" }],
+              },
+              {
+                $and: [{ card: "Mastercard 7404" }, { irs_category: "Car and Truck Expenses" }],
+              },
+              {
+                $and: [{ card: "Amex 3002" }, { irs_category: "Car and Truck Expenses" }],
+              },
+              {
                 $and: [{ reason: { $exists: true } }, { irs_category: "Meals" }],
               },
             ],
