@@ -90,8 +90,8 @@ export default ({ order, isSponsor }) => {
                       <tbody>
                         <tr>
                           <td style="font-family:helvetica;width:100%">
-                             <div style="font-size:25px;font-weight:600;color:black">
-                              ${item.quantity > 1 ? `${item.quantity}x` : ""} ${item.name}
+                             <div style="font-size:25px;color:black">
+                              <span style="font-size:25px;font-weight:600;color:black">${item.quantity > 1 ? `${item.quantity}x` : ""} ${item.name}</span>
                               ${item.selectedOptions
                                 .map((option, optionIndex) => {
                                   if (option.name && item.currentOptions[optionIndex]) {
@@ -102,7 +102,6 @@ export default ({ order, isSponsor }) => {
                                         margin:2px;
                                         border-radius:16px;
                                         font-size:25px;
-                                        font-weight:550;
                                         background-color:white;
                                         border:1px solid black;
                                         color: black;
@@ -118,7 +117,7 @@ export default ({ order, isSponsor }) => {
                             </div>
                           </td>
                           <td style="font-family:helvetica;width:100%;white-space:nowrap">
-                            <p style="color:black;line-height:150%;font-size:25px;font-weight:600;margin:0 0 0 15px"
+                            <p style="color:black;line-height:150%;font-size:30px;font-weight:600;margin:0 0 0 15px"
                               align="right">
                              ${Price(item, "black", order?.user?.isWholesaler)}
                             </p>

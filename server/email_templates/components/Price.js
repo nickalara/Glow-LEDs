@@ -20,7 +20,7 @@ export default (item, color, wholesaler) => {
 
   // Wholesale price display
   if (wholesaler && item.wholesale_price) {
-    return `<div style="font-size: 18px; display: flex; align-items: center; gap: 4px; color: ${color}">
+    return `<div style="font-size: 25px; display: flex; align-items: center; gap: 4px; color: ${color}">
       WSP: $${formatPrice(item.wholesale_price)}
     </div>`;
   }
@@ -36,7 +36,7 @@ export default (item, color, wholesaler) => {
     const quantity = item.quantity || 1;
     const promoPrice = item.promoPrice;
 
-    return `<div style="font-size: 18px; display: flex; align-items: center; gap: 8px; color: ${color}">
+    return `<div style="font-size: 25px; display: flex; align-items: center; gap: 8px; color: ${color}">
       ${item.isPreOrder ? "Preorder " : ""}
       <span>$${formatPrice((promoPrice || item.sale?.price) * quantity)}</span>
       ${discount ? `<span>(${discount}% Off)</span>` : ""}
@@ -52,7 +52,7 @@ export default (item, color, wholesaler) => {
     const discount = calculateDiscount(item.price, item.previous_price);
     const quantity = item.quantity || 1;
 
-    return `<div style="font-size: 18px; display: flex; align-items: center; gap: 8px; color: ${color}">
+    return `<div style="font-size: 25px; display: flex; align-items: center; gap: 8px; color: ${color}">
       ${item.isPreOrder ? "Preorder " : ""}
       <span>$${formatPrice(item.price * quantity)}</span>
       ${discount ? `<span>(${discount}% Off)</span>` : ""}
@@ -64,7 +64,7 @@ export default (item, color, wholesaler) => {
 
   // Sold out display
   if (item.quantity === 0) {
-    return `<div style="font-size: 18px; display: flex; align-items: center; gap: 8px; color: ${color}">
+    return `<div style="font-size: 25px; display: flex; align-items: center; gap: 8px; color: ${color}">
       ${item.isPreOrder ? "Preorder " : ""}
       <del style="color: #ff0000;">
         <span style="color: ${color};">$${formatPrice(item.price)}</span>
@@ -74,7 +74,7 @@ export default (item, color, wholesaler) => {
   }
 
   // Regular price display
-  return `<div style="font-size: 18px; display: flex; align-items: center; gap: 4px; color: ${color}">
+  return `<div style="font-size: 25px; display: flex; align-items: center; gap: 4px; color: ${color}">
     ${item.isPreOrder ? "Preorder " : ""}
     $${formatPrice(item.price * (item.quantity || 1))}
   </div>`;
