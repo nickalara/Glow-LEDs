@@ -43,6 +43,7 @@ const MetaDataDisplay = ({ row }) => {
       }
       dispatch(set_loading_label(false));
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error("Error sending order email:", error);
     }
   };
@@ -89,14 +90,39 @@ const MetaDataDisplay = ({ row }) => {
           {row?.payment?.paymentMethod}
         </Typography>
       </Grid>
+
+      {/* Promo Code Display - showing both legacy string and new record link */}
       <Grid item container xs={12} alignItems="center" justifyContent="space-between">
         <Typography component="label" className="mv-0px mr-5px">
           {"Promo Code:"}
         </Typography>
         <Typography component="label" className=" mv-0px">
-          {row.promo_code}
+          {row.promo_code && row?.promo_code?.toUpperCase()}
+          {!row.promo_code && row.promo && row.promo?.code?.toUpperCase()}
         </Typography>
       </Grid>
+
+      {/* Gift Cards Display */}
+      {row.giftCards && row.giftCards.length > 0 && (
+        <Grid item xs={12}>
+          <Typography component="label" className="mv-0px mr-5px">
+            {"Gift Cards:"}
+          </Typography>
+          {row.giftCards.map((giftCard, index) => (
+            <Grid item container key={index} xs={12} alignItems="center" justifyContent="space-between" sx={{ pl: 2 }}>
+              <Typography component="label" className="mv-0px mr-5px">
+                {giftCard.code}
+                {":"}
+              </Typography>
+              <Typography component="label" className="mv-0px">
+                {"$"}
+                {(giftCard.amountUsed / 100).toFixed(2)}
+              </Typography>
+            </Grid>
+          ))}
+        </Grid>
+      )}
+
       <Grid item container xs={12} alignItems="center" justifyContent="space-between">
         <Typography component="label" className="mv-0px mr-5px">
           {"Total Price Paid:"}
