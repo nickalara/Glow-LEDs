@@ -15,6 +15,7 @@ import RefundOrderModal from "./components/RefundOrderModal";
 import CreateLabelModal from "./components/CreateLabelModal";
 import { toTitleCase } from "../../utils/helper_functions";
 import LinkLabelModal from "./components/LinkLabelModal";
+import LinkExternalTrackingModal from "./components/LinkExternalTrackingModal";
 import { useOrdersPage } from "./useOrdersPage";
 import { showConfirm } from "../../slices/snackbarSlice";
 import Button from "@mui/material/Button";
@@ -132,6 +133,7 @@ const OrdersPage = () => {
       <RefundOrderModal />
       <CreateLabelModal />
       <LinkLabelModal />
+      <LinkExternalTrackingModal />
     </Container>
   );
 };

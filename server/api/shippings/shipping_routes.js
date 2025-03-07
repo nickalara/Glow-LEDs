@@ -18,6 +18,9 @@ router
   .put(isAuth, isAdmin, shipping_controller.refund_label_shipping_c);
 
 router.route("/:order_id/create_tracker").put(isAuth, isAdmin, shipping_controller.create_tracker_shipping_c);
+router
+  .route("/:order_id/link_external_tracking")
+  .put(isAuth, isAdmin, shipping_controller.link_external_tracking_shipping_c);
 router.route("/custom_shipping_rates").put(isAuth, isAdmin, shipping_controller.custom_shipping_rates_shipping_c);
 router.route("/create_custom_label").put(isAuth, isAdmin, shipping_controller.create_custom_label_shipping_c);
 router

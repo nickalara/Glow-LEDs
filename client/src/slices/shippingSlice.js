@@ -14,6 +14,7 @@ const shippingSlice = createSlice({
     shippingRates: [],
     shippingRate: {},
     linkLabelModal: false,
+    externalTrackingModal: false,
     create_pickup_modal: false,
     createLabelModal: false,
     shipments: [],
@@ -169,6 +170,12 @@ const shippingSlice = createSlice({
     closeLinkLabelModal: (state, { payload }) => {
       state.linkLabelModal = false;
       state.selectedShipmentId = "";
+    },
+    openExternalTrackingModal: (state, { payload }) => {
+      state.externalTrackingModal = true;
+    },
+    closeExternalTrackingModal: (state, { payload }) => {
+      state.externalTrackingModal = false;
     },
     setSelectedShipmentId: (state, { payload }) => {
       state.selectedShipmentId = payload;
@@ -334,6 +341,18 @@ const shippingSlice = createSlice({
       state.error = payload ? payload.error : error.message;
       state.message = payload ? payload.message : "An error occurred";
     },
+    [API.linkExternalTracking.pending]: (state, { payload }) => {
+      state.loading_label = true;
+    },
+    [API.linkExternalTracking.fulfilled]: (state, { payload }) => {
+      state.loading_label = false;
+      state.message = "External tracking linked successfully";
+    },
+    [API.linkExternalTracking.rejected]: (state, { payload, error }) => {
+      state.loading_label = false;
+      state.error = payload ? payload.error : error.message;
+      state.message = payload ? payload.message : "An error occurred";
+    },
   },
 });
 
@@ -350,8 +369,10 @@ export const {
   setParcel,
   setSelectedRateId,
   resetRates,
-  closeLinkLabelModal,
   openLinkLabelModal,
+  closeLinkLabelModal,
+  openExternalTrackingModal,
+  closeExternalTrackingModal,
   setSelectedShipmentId,
 } = shippingSlice.actions;
 export default shippingSlice.reducer;

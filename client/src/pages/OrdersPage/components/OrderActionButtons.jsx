@@ -4,7 +4,7 @@ import * as API from "../../../api";
 import { API_Orders } from "../../../utils";
 import { Loading } from "../../../shared/SharedComponents";
 import { printCustomerLabel, printInvoice, printLabel } from "../ordersPageHelpers";
-import { openLinkLabelModal } from "../../../slices/shippingSlice";
+import { openLinkLabelModal, openExternalTrackingModal } from "../../../slices/shippingSlice";
 import { openShippingModal, set_order } from "../../../slices/orderSlice";
 import { showConfirm, showSuccess } from "../../../slices/snackbarSlice";
 import ReturnItemsModal from "./ReturnItemsModal";
@@ -171,6 +171,19 @@ const OrderActionButtons = ({ order }) => {
             }}
           >
             {"Link Order to Label"}
+          </Button>
+        </Grid>
+        <Grid item xs={12}>
+          <Button
+            color="secondary"
+            variant="contained"
+            className="w-100per mv-5px"
+            onClick={() => {
+              dispatch(set_order(order));
+              dispatch(openExternalTrackingModal());
+            }}
+          >
+            {"Link External Tracking"}
           </Button>
         </Grid>
         {!order.shipping.return_shipping_label && (

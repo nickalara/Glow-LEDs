@@ -196,3 +196,21 @@ export const differentShippingRates = createAsyncThunk(
     }
   }
 );
+
+export const linkExternalTracking = createAsyncThunk(
+  "shipping/linkExternalTracking",
+  async ({ order_id, tracking_code, carrier, notes }, { dispatch, rejectWithValue }) => {
+    try {
+      const { data } = await axios.put(`/api/shipping/${order_id}/link_external_tracking`, {
+        tracking_code,
+        carrier,
+        notes,
+      });
+      dispatch(showSuccess({ message: `External tracking linked successfully` }));
+      return data;
+    } catch (error) {
+      dispatch(showError({ message: errorMessage(error) }));
+      return rejectWithValue(error.response?.data);
+    }
+  }
+);

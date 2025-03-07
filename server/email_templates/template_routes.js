@@ -292,7 +292,7 @@ router.get("/shipping_status", async (req, res) => {
   res.send(App({ body: ShippingStatusTemplate(body), unsubscribe: false }));
 });
 router.get("/invoice", async (req, res) => {
-  const orderDocument = await order_db.findById_orders_db("676ec4d5ddcc3482552549d4");
+  const orderDocument = await order_db.findById_orders_db("67c5efe129d63e5c7f6a10b2");
   const body = {
     email: {
       show_image: true,
@@ -311,7 +311,7 @@ router.get("/invoice", async (req, res) => {
     title: "Thank you for your purchase!",
     order: orderDocument,
   };
-  res.send(App({ body: InvoiceTemplate(body) }));
+  res.send(InvoiceTemplate(body));
 });
 
 router.get("/shipping_status", async (req, res) => {

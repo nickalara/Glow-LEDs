@@ -183,4 +183,19 @@ export default {
       res.status(200).json({ error, message: error.message });
     }
   },
+
+  link_external_tracking_shipping_c: async (req, res) => {
+    const { params, body } = req;
+    try {
+      const shipping = await shipping_services.link_external_tracking_shipping_s(params, body);
+      if (shipping) {
+        console.log("ordersChanged socket triggered");
+        req.io.emit("ordersChanged");
+        return res.status(200).send(shipping);
+      }
+      return res.status(404).send({ message: "Shipping Not Found" });
+    } catch (error) {
+      res.status(500).send({ error, message: error.message });
+    }
+  },
 };

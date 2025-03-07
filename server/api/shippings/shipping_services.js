@@ -126,7 +126,49 @@ export default {
       return tracker;
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(error.message);
+        throw new Error(error.errors?.map(error => `${error.field} ${error.message}`).join(", ") || error.message);
+      }
+    }
+  },
+  link_external_tracking_shipping_s: async (params, body) => {
+    try {
+      const { order_id } = params;
+      const { tracking_code, carrier, notes } = body;
+
+      // Find the order
+      const order = await order_db.findById_orders_db(order_id);
+      if (!order) {
+        throw new Error("Order not found");
+      }
+
+      // Create a tracker in EasyPost for this tracking number
+      const tracker = await EasyPost.Tracker.create({
+        tracking_code,
+        carrier,
+      });
+
+      // Update the order with the tracking information
+      order.tracking_number = tracking_code;
+      order.tracking_url = tracker.public_url;
+      order.shipping.shipment_tracker = tracker.id;
+
+      // Add a note to the change log if provided
+      if (notes) {
+        order.change_log = [
+          ...(order.change_log || []),
+          {
+            change: `Linked external tracking: ${tracking_code} (${carrier})${notes ? `. Notes: ${notes}` : ""}`,
+            changedAt: new Date(),
+            changedBy: body.current_user || { first_name: "System", last_name: "Auto", id: "SYSTEM" },
+          },
+        ];
+      }
+      // Save the updated order
+      const savedOrder = await order_db.update_orders_db(order._id, order);
+      return savedOrder;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(error.errors?.map(error => `${error.field} ${error.message}`).join(", ") || error.message);
       }
     }
   },
