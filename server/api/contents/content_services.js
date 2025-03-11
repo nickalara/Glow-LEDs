@@ -2,6 +2,7 @@ import Content from "./content.js";
 import content_db from "./content_db.js";
 import { normalizeContentFilters, normalizeContentSearch } from "./content_helpers.js";
 import { getFilteredData } from "../api_helpers.js";
+import Product from "../products/product.js";
 
 export default {
   get_table_contents_s: async query => {
@@ -35,7 +36,7 @@ export default {
 
       // Apply the active status if it exists
       if (query.active !== undefined) {
-        filter.active = query.active === "true" ? true : false;
+        filter.active = query.active === "true";
       }
 
       // Add deleted flag as false
@@ -92,10 +93,6 @@ export default {
         .limit(1)
         .populate({
           path: "home_page.modules.content.featured_products",
-          populate: {
-            path: "images_object",
-            model: "Image",
-          },
         })
         .populate({
           path: "home_page.modules.content.featured_product_bundles",
@@ -146,6 +143,25 @@ export default {
         .populate("academy_page.featured_tutorials.image")
         .populate("academy_page.sponsors")
         .populate("about_page.sections.image");
+
+      // Refetch featured products with complete data
+      if (currentContent && currentContent[0]?.home_page?.modules) {
+        const featuredProductsModule = currentContent[0].home_page.modules.find(
+          module => module.type === "featured_products" && module.content?.featured_products?.length > 0
+        );
+
+        if (featuredProductsModule) {
+          const productIds = featuredProductsModule.content.featured_products.map(product => product._id);
+          const fullProducts = await Product.find({ _id: { $in: productIds } })
+            .populate("images")
+            .populate("tags")
+            .populate("sale")
+            .lean();
+
+          featuredProductsModule.content.featured_products = fullProducts;
+        }
+      }
+
       return currentContent;
     } catch (error) {
       if (error instanceof Error) {
@@ -210,6 +226,7 @@ export default {
       if (error instanceof Error) {
         throw new Error(error.message);
       }
+      return undefined;
     }
   },
 };
