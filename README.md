@@ -139,7 +139,7 @@ Homebrew automatically adds MongoDB binaries to your PATH. If you need to add th
 
 ## Setting Up Stripe API Keys
 
-1. Create a Stripe account at [stripe.com](https://stripe.com){:target="\_blank"}
+1. Create a Stripe account at [stripe.com](https://stripe.com)
 
 2. Once logged in, go to the Stripe Dashboard
 
