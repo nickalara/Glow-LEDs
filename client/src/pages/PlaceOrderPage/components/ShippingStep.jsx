@@ -213,17 +213,17 @@ const ShippingStep = () => {
       const hasSaleItems = hasActiveSaleItems(cartItems);
 
       if (request.payload.isValid) {
-        if (!hasSaleItems) {
-          dispatch(
-            activatePromo({
-              cartItems,
-              tax_rate,
-              activePromoCodeIndicator,
-              current_user,
-              validPromo: request.payload.promo,
-            })
-          );
-        }
+        // if (!hasSaleItems) {
+        dispatch(
+          activatePromo({
+            cartItems,
+            tax_rate,
+            activePromoCodeIndicator,
+            current_user,
+            validPromo: request.payload.promo,
+          })
+        );
+        // }
       } else {
         dispatch(set_promo_code_validations(request.payload.errors.promo_code));
         dispatch(set_promo_code(""));

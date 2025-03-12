@@ -83,7 +83,6 @@ const PaymentStep = () => {
 
   const hasPreOrderItems = getHasPreOrderItems(cartItems);
   const preOrderReleaseDate = getPreOrderReleaseDate(cartItems);
-  const hasSaleItems = hasActiveSaleItems(cartItems);
 
   const check_code = async e => {
     e.preventDefault();
@@ -299,7 +298,7 @@ const PaymentStep = () => {
                 />
               </div>
             )}
-            {show_promo_code && !hasSaleItems && (
+            {show_promo_code && (
               <div>
                 <div className="mv-10px">
                   <label htmlFor="promo_code">{"Promo Code or Gift Card"}</label>
@@ -405,15 +404,6 @@ const PaymentStep = () => {
                     ))}
                   </div>
                 )}
-              </div>
-            )}
-            {hasSaleItems && (
-              <div className="mv-10px">
-                <Typography variant="body1" color="warning.main">
-                  {
-                    "Promo codes cannot be used during sales events. However, affiliate codes will still be credited for the order."
-                  }
-                </Typography>
               </div>
             )}
             <div>
